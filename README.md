@@ -1,9 +1,11 @@
 # usp-telegram-bot
 <img alt="Python" src="https://img.shields.io/badge/python%20-%2314354C.svg?&style=for-the-badge&logo=python&logoColor=white"/>
 
+BATCH PROJECT 2021 Amazing Race Bot.
+
 Puzzle-based USP Game of Life Telegram Bot. Implemented similar to [Royal Flush Telegram Bot](https://github.com/puzzlestory/t-royal-flush-telegram-bot)
 
-[Link to the bot](https://t.me/puzzlehunt_bot) here (currently activated only for dev purposes).
+[Link to the bot](https://t.me/bp2021_amazingracebot) here (currently activated only for dev purposes).
 
 ## How it works
 First, run [**main.py**](https://github.com/RussellDash332/usp-telegram-bot/blob/main/main.py), where it contains the regular commands such as ```/start```, ```/meter```. It will then lead you to [**puzzles_menu.py**](https://github.com/RussellDash332/puzzle-hunt-telegram-bot/blob/main/puzzles_menu.py) where it contains the main puzzle conversation handler and query handlers related to the ```/activities``` command. Inside is a list of methods handling different cases and options, depending on the user, such as asking for a hint and retrying a puzzle.
