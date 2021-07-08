@@ -1,4 +1,4 @@
-from cmd_base import Puzzle, get_options_keyboard, save_user_progress, send_description, DATA_DIR
+from cmd_base import Activity, get_options_keyboard, save_user_progress, send_description, DATA_DIR
 from json import load, loads, dumps
 from os import path
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ParseMode
@@ -6,7 +6,7 @@ from telegram.ext import ConversationHandler, CommandHandler, MessageHandler, Fi
 
 from dpad_manager import read_dp, write_dp
 
-CHOOSE_PUZZLE, CHOOSE_OPTION, CHECK_ANSWER, CHOOSE_CONTINUE_OPTION = range(4)
+CHOOSE_ACTIVITY, CHOOSE_OPTION, CHECK_ANSWER, CHOOSE_CONTINUE_OPTION = range(4)
 
 DATA_DIR = path.join('.', 'bot_data')
 DATA_PATH = path.join(DATA_DIR, 'forfeits.json')
@@ -32,26 +32,26 @@ def forfeits(data, social, academic, happiness, health):
 def sgn(x):
     return '+'+str(x) if x > 0 else str(x)
 
-def show_puzzles_menu(update, context):
+def show_activities_menu(update, context):
     msg = update.message
     user_id = msg.from_user.id
 
     reply_markup = get_options_keyboard(context.chat_data, user_id)
     msg.reply_text('Choose an activity to view ...', reply_markup=reply_markup)
 
-    return CHOOSE_PUZZLE
+    return CHOOSE_ACTIVITY
 
-def choose_puzzle(update, context):
+def choose_activity(update, context):
     query = update.callback_query
     user_id = update.effective_user.id
 
     query.answer()
 
     # This can be 'back' in some occassions but we'll see :)
-    puzzle_idx = query.data
+    activity_idx = query.data
 
-    puzzles = context.chat_data[user_id]
-    context.user_data['cur_puzzle_idx'] = puzzle_idx
+    activities = context.chat_data[user_id]
+    context.user_data['cur_activity_idx'] = activity_idx
     context.user_data['username'] = update.effective_user.username
 
     # We need to check whether we have completed all activities before the selected activity
@@ -62,16 +62,16 @@ def choose_puzzle(update, context):
         user_progress = list()
 
     bot = context.bot
-    idx = puzzles[puzzle_idx].idx
+    idx = activities[activity_idx].idx
 
     # Using the underlying data in bot_data.json
     id_num = int(idx[4:6])
 
     # We have completed all activities before the selected activity
     if len(user_progress) >= id_num - 1:
-        name = puzzles[puzzle_idx].name
-        description = puzzles[puzzle_idx].description
-        is_completed = puzzles[puzzle_idx].is_completed
+        name = activities[activity_idx].name
+        description = activities[activity_idx].description
+        is_completed = activities[activity_idx].is_completed
 
         bot.delete_message(chat_id=user_id, message_id=query.message.message_id)
 
@@ -102,10 +102,10 @@ def choose_puzzle(update, context):
             ]
 
         txt = [f'Showing {name}.']
-        # Update response for completed puzzle
+        # Update response for completed activity
         if is_completed:
             if 'T' in idx:
-                first_answer = puzzles[puzzle_idx].answers[0]
+                first_answer = activities[activity_idx].answers[0]
                 txt.append(f' You already completed this question! The answer was "{first_answer}".\n')
             else: # scenario or game
                 txt.append(f' You already completed this activity!\n')
@@ -128,9 +128,9 @@ def choose_puzzle(update, context):
         except:
             pass # unmodified message
 
-        return CHOOSE_PUZZLE
+        return CHOOSE_ACTIVITY
 
-def return_to_puzzles_menu(update, context):
+def return_to_activities_menu(update, context):
     query = update.callback_query
     user_id = update.effective_user.id
 
@@ -147,18 +147,18 @@ def return_to_puzzles_menu(update, context):
     reply_markup = get_options_keyboard(context.chat_data, user_id)
     query.message.reply_text('Choose an activity to view...', reply_markup=reply_markup)
 
-    return CHOOSE_PUZZLE
+    return CHOOSE_ACTIVITY
 
-def answer_puzzle(update, context):
+def answer_activity(update, context):
     query = update.callback_query
     user_id = update.effective_user.id
 
     query.answer()
 
-    puzzle_idx = context.user_data['cur_puzzle_idx']
-    puzzles = context.chat_data[user_id]
+    activity_idx = context.user_data['cur_activity_idx']
+    activities = context.chat_data[user_id]
 
-    name = puzzles[puzzle_idx].name
+    name = activities[activity_idx].name
     query.edit_message_text(text=f'Trying "{name}", type the answer')
 
     return CHECK_ANSWER
@@ -166,11 +166,11 @@ def answer_puzzle(update, context):
 # This will only run if the activity is a trivia
 def check_answer(update, context):
     user_id = update.message.from_user.id
-    puzzles = context.chat_data[user_id]
-    puzzle_idx = context.user_data['cur_puzzle_idx']
+    activities = context.chat_data[user_id]
+    activity_idx = context.user_data['cur_activity_idx']
     user_name = context.user_data['username']
 
-    right_answers = puzzles[puzzle_idx].answers
+    right_answers = activities[activity_idx].answers
     user_answer = update.message.text
 
     keyboard = [
@@ -182,7 +182,7 @@ def check_answer(update, context):
 
     if user_answer in right_answers:
         result = f'Right answer! Congratulations @{user_name}!'
-        puzzles[puzzle_idx].is_completed = True
+        activities[activity_idx].is_completed = True
         save_user_progress(str(user_id), context)
     else:
         keyboard.insert(0, [InlineKeyboardButton(text='Try again 🔄', callback_data='try_again')])
@@ -196,8 +196,8 @@ def check_answer(update, context):
 
 def yes(update, context):
     user_id = update['callback_query'].from_user['id']
-    puzzles = context.chat_data[user_id]
-    puzzle_idx = context.user_data['cur_puzzle_idx']
+    activities = context.chat_data[user_id]
+    activity_idx = context.user_data['cur_activity_idx']
     user_name = update['callback_query'].from_user['username']
 
     query = update.callback_query
@@ -226,12 +226,12 @@ def yes(update, context):
         user_hlth = 3
         user_forf = dict()
 
-    user_soc += puzzles[puzzle_idx].social[0]
-    user_acad += puzzles[puzzle_idx].academic[0]
-    user_hap += puzzles[puzzle_idx].happiness[0]
-    user_hlth += puzzles[puzzle_idx].health[0]
-    puzzles[puzzle_idx].is_completed = True
-    user_progress.append(puzzle_idx)
+    user_soc += activities[activity_idx].social[0]
+    user_acad += activities[activity_idx].academic[0]
+    user_hap += activities[activity_idx].happiness[0]
+    user_hlth += activities[activity_idx].health[0]
+    activities[activity_idx].is_completed = True
+    user_progress.append(activity_idx)
 
     forfeit_keyboard = [
             [
@@ -247,10 +247,10 @@ def yes(update, context):
         result = [
             'You chose <b>"Yes"</b> for this scenario.\n',
             'Your choice affects your meter scores as follows:',
-            f'Social: <b>{sgn(puzzles[puzzle_idx].social[0])}</b>',
-            f'Academic: <b>{sgn(puzzles[puzzle_idx].academic[0])}</b>',
-            f'Happiness: <b>{sgn(puzzles[puzzle_idx].happiness[0])}</b>',
-            f'Health: <b>{sgn(puzzles[puzzle_idx].health[0])}</b>',
+            f'Social: <b>{sgn(activities[activity_idx].social[0])}</b>',
+            f'Academic: <b>{sgn(activities[activity_idx].academic[0])}</b>',
+            f'Happiness: <b>{sgn(activities[activity_idx].happiness[0])}</b>',
+            f'Health: <b>{sgn(activities[activity_idx].health[0])}</b>',
             '\nYou can always check your current meter score with the /meter command.\n',
             '<b>WARNING: You are required to do a list of forfeit(s) as follows!</b>'
             ]
@@ -291,10 +291,10 @@ def yes(update, context):
         result = [
             'You chose <b>"Yes"</b> for this scenario.\n',
             'Your choice affects your meter scores as follows:',
-            f'Social: <b>{sgn(puzzles[puzzle_idx].social[0])}</b>',
-            f'Academic: <b>{sgn(puzzles[puzzle_idx].academic[0])}</b>',
-            f'Happiness: <b>{sgn(puzzles[puzzle_idx].happiness[0])}</b>',
-            f'Health: <b>{sgn(puzzles[puzzle_idx].health[0])}</b>',
+            f'Social: <b>{sgn(activities[activity_idx].social[0])}</b>',
+            f'Academic: <b>{sgn(activities[activity_idx].academic[0])}</b>',
+            f'Happiness: <b>{sgn(activities[activity_idx].happiness[0])}</b>',
+            f'Health: <b>{sgn(activities[activity_idx].health[0])}</b>',
             '\nYou can always check your current meter score with the /meter command.'
             ]
 
@@ -305,8 +305,8 @@ def yes(update, context):
 
 def no(update, context):
     user_id = update['callback_query'].from_user['id']
-    puzzles = context.chat_data[user_id]
-    puzzle_idx = context.user_data['cur_puzzle_idx']
+    activities = context.chat_data[user_id]
+    activity_idx = context.user_data['cur_activity_idx']
     user_name = update['callback_query'].from_user['username']
 
     query = update.callback_query
@@ -335,12 +335,12 @@ def no(update, context):
         user_hlth = 3
         user_forf = dict()
 
-    user_soc += puzzles[puzzle_idx].social[1]
-    user_acad += puzzles[puzzle_idx].academic[1]
-    user_hap += puzzles[puzzle_idx].happiness[1]
-    user_hlth += puzzles[puzzle_idx].health[1]
-    puzzles[puzzle_idx].is_completed = True
-    user_progress.append(puzzle_idx)
+    user_soc += activities[activity_idx].social[1]
+    user_acad += activities[activity_idx].academic[1]
+    user_hap += activities[activity_idx].happiness[1]
+    user_hlth += activities[activity_idx].health[1]
+    activities[activity_idx].is_completed = True
+    user_progress.append(activity_idx)
 
     forfeit_keyboard = [
             [
@@ -356,10 +356,10 @@ def no(update, context):
         result = [
             'You chose <b>"No"</b> for this scenario.\n',
             'Your choice affects your meter scores as follows:',
-            f'Social: <b>{sgn(puzzles[puzzle_idx].social[1])}</b>',
-            f'Academic: <b>{sgn(puzzles[puzzle_idx].academic[1])}</b>',
-            f'Happiness: <b>{sgn(puzzles[puzzle_idx].happiness[1])}</b>',
-            f'Health: <b>{sgn(puzzles[puzzle_idx].health[1])}</b>',
+            f'Social: <b>{sgn(activities[activity_idx].social[1])}</b>',
+            f'Academic: <b>{sgn(activities[activity_idx].academic[1])}</b>',
+            f'Happiness: <b>{sgn(activities[activity_idx].happiness[1])}</b>',
+            f'Health: <b>{sgn(activities[activity_idx].health[1])}</b>',
             '\nYou can always check your current meter score with the /meter command.\n',
             '<b>WARNING: You are required to do a list of forfeit(s) as follows!</b>'
             ]
@@ -400,10 +400,10 @@ def no(update, context):
         result = [
             'You chose <b>"No"</b> for this scenario.\n',
             'Your choice affects your meter scores as follows:',
-            f'Social: <b>{sgn(puzzles[puzzle_idx].social[1])}</b>',
-            f'Academic: <b>{sgn(puzzles[puzzle_idx].academic[1])}</b>',
-            f'Happiness: <b>{sgn(puzzles[puzzle_idx].happiness[1])}</b>',
-            f'Health: <b>{sgn(puzzles[puzzle_idx].health[1])}</b>',
+            f'Social: <b>{sgn(activities[activity_idx].social[1])}</b>',
+            f'Academic: <b>{sgn(activities[activity_idx].academic[1])}</b>',
+            f'Happiness: <b>{sgn(activities[activity_idx].happiness[1])}</b>',
+            f'Health: <b>{sgn(activities[activity_idx].health[1])}</b>',
             '\nYou can always check your current meter score with the /meter command.'
             ]
 
@@ -414,8 +414,8 @@ def no(update, context):
 
 def complete(update, context):
     user_id = update.effective_user.id
-    puzzles = context.chat_data[user_id]
-    puzzle_idx = context.user_data['cur_puzzle_idx']
+    activities = context.chat_data[user_id]
+    activity_idx = context.user_data['cur_activity_idx']
     user_name = update['callback_query'].from_user['username']
 
     query = update.callback_query
@@ -446,8 +446,8 @@ def complete(update, context):
         user_hlth = 3
         user_forf = dict()
 
-    puzzles[puzzle_idx].is_completed = True
-    user_progress.append(puzzle_idx)
+    activities[activity_idx].is_completed = True
+    user_progress.append(activity_idx)
 
     user_data_str = dumps({
             'username': user_name,
@@ -473,7 +473,7 @@ def try_again(update, context):
 
     return CHECK_ANSWER
 
-def leave_puzzles_menu(update, context):
+def leave_activities_menu(update, context):
     query = update.callback_query
     query.answer()
 
@@ -489,15 +489,15 @@ def leave_puzzles_menu(update, context):
     query.edit_message_text('Bye, see you later! 😊')
     return ConversationHandler.END
 
-puzzles_menu = ConversationHandler(
-    entry_points=[CommandHandler('activities', show_puzzles_menu)],
+activities_menu = ConversationHandler(
+    entry_points=[CommandHandler('activities', show_activities_menu)],
     states={
-        CHOOSE_PUZZLE: [
-            CallbackQueryHandler(choose_puzzle)
+        CHOOSE_ACTIVITY: [
+            CallbackQueryHandler(choose_activity)
         ],
         CHOOSE_OPTION: [
-            CallbackQueryHandler(answer_puzzle, pattern='^try$'),
-            CallbackQueryHandler(return_to_puzzles_menu, pattern='^back$'),
+            CallbackQueryHandler(answer_activity, pattern='^try$'),
+            CallbackQueryHandler(return_to_activities_menu, pattern='^back$'),
             CallbackQueryHandler(yes, pattern='^yes$'),
             CallbackQueryHandler(no, pattern='^no$'),
             CallbackQueryHandler(complete, pattern='^complete$')
@@ -506,9 +506,9 @@ puzzles_menu = ConversationHandler(
             MessageHandler(~Filters.regex('^/'), check_answer)
         ],
         CHOOSE_CONTINUE_OPTION: [
-            CallbackQueryHandler(return_to_puzzles_menu, pattern='^back$'),
+            CallbackQueryHandler(return_to_activities_menu, pattern='^back$'),
             CallbackQueryHandler(try_again, pattern='^try_again$')
         ]
     },
-    fallbacks=[CallbackQueryHandler(leave_puzzles_menu, pattern='^done$')]
+    fallbacks=[CallbackQueryHandler(leave_activities_menu, pattern='^done$')]
 )

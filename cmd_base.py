@@ -8,7 +8,7 @@ DATA_DIR = path.join('.', 'bot_data')
 DATA_PATH = path.join(DATA_DIR, 'bot_data.json')
 PROGRESS_PATH = path.join('.', 'users_progress', 'users_progress.json')
 
-class Puzzle:
+class Activity:
     def __init__(self, idx, name, description, answers, social, academic, happiness, health):
         self.idx = idx
         self.name = name
@@ -22,7 +22,7 @@ class Puzzle:
             self.health = health
         self.is_completed = None
 
-def set_progress(puzzles, user_id):
+def set_progress(activities, user_id):
     user_data_str = read_dp(user_id)
 
     if user_data_str:
@@ -44,7 +44,7 @@ def set_progress(puzzles, user_id):
             }, indent=2)
         write_dp(user_id, user_data_str)
 
-    for idx, p in puzzles.items():
+    for idx, p in activities.items():
         if idx in user_progress:
             p.is_completed = True
 
@@ -52,25 +52,25 @@ def load_data_from_csv(user_id):
     with open(DATA_PATH, 'r') as f:
         bot_data = load(f)
 
-    puzzles = dict()
+    activities = dict()
     for p_idx, data in bot_data.items():
         if 'T' in data['idx']: # trivia
-            puzzle = Puzzle(data['idx'], data['name'], data['description'], data['answers'], 0, 0, 0, 0) # we won't use the last 4 parameters
+            activity = Activity(data['idx'], data['name'], data['description'], data['answers'], 0, 0, 0, 0) # we won't use the last 4 parameters
         elif 'S' in data['idx']: # scenario
-            puzzle = Puzzle(data['idx'], data['name'], data['description'], [], data['social'], data['academic'], data['happiness'], data['health']) # no answer
+            activity = Activity(data['idx'], data['name'], data['description'], [], data['social'], data['academic'], data['happiness'], data['health']) # no answer
         else: # game
-            puzzle = Puzzle(data['idx'], data['name'], data['description'], [], 0, 0, 0, 0) # combination of both above
-        puzzles[p_idx] = puzzle
+            activity = Activity(data['idx'], data['name'], data['description'], [], 0, 0, 0, 0) # combination of both above
+        activities[p_idx] = activity
 
-    set_progress(puzzles, str(user_id))
-    return puzzles
+    set_progress(activities, str(user_id))
+    return activities
 
 def get_options_keyboard(data, user_id):
     if user_id not in data: data[user_id] = load_data_from_csv(user_id)
-    puzzles = data[user_id]
+    activities = data[user_id]
 
-    titles = [f'{c.name} ✅' if c.is_completed else c.name for c in puzzles.values()]
-    keys = puzzles.keys()
+    titles = [f'{c.name} ✅' if c.is_completed else c.name for c in activities.values()]
+    keys = activities.keys()
 
     # Exactly 18 options so make it 6x3
     keyboard = [[InlineKeyboardButton(t, callback_data=k)] for t, k in zip(titles, keys)]
@@ -96,7 +96,7 @@ def save_user_progress(user_id, context):
         user_hlth = 3
         user_forf = dict()
 
-    user_progress.append(context.user_data['cur_puzzle_idx'])
+    user_progress.append(context.user_data['cur_activity_idx'])
 
     user_name = context.user_data['username']
     user_data_str = dumps({
