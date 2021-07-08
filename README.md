@@ -37,7 +37,7 @@ python-telegram-bot==13.4.1
 ```
 
 #### First Deploy
-Create a new project in Google Cloud, store it's name in ```<PROJECT-ID>```. Run this command on your terminal and replace ```<TOKEN>``` with your bot API token.
+Create a new project in Google Cloud, store it's name in ```<PROJECT-ID>```. Run this command on your terminal and replace ```<TOKEN>``` with your bot API token. Make sure you have turned on Cloud Build API for your project.
 
 ```
 gcloud functions deploy FUNCTION_NAME --set-env-vars "TELEGRAM_TOKEN=<TOKEN>" --runtime python38 --trigger-http --project=<PROJECT-ID>
