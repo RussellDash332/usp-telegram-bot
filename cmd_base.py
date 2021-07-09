@@ -9,7 +9,7 @@ DATA_PATH = path.join(DATA_DIR, 'bot_data.json')
 PROGRESS_PATH = path.join('.', 'users_progress', 'users_progress.json')
 
 class Activity:
-    def __init__(self, idx, name, description, answers, social, academic, happiness, health):
+    def __init__(self, idx, name, description, answers, social, academic, happiness, health, info):
         self.idx = idx
         self.name = name
         self.description = description
@@ -20,6 +20,7 @@ class Activity:
             self.academic = academic
             self.happiness = happiness
             self.health = health
+            self.information = info
         self.is_completed = None
 
 def set_progress(activities, user_id):
@@ -55,11 +56,11 @@ def load_data_from_csv(user_id):
     activities = dict()
     for p_idx, data in bot_data.items():
         if 'T' in data['idx']: # trivia
-            activity = Activity(data['idx'], data['name'], data['description'], data['answers'], 0, 0, 0, 0) # we won't use the last 4 parameters
+            activity = Activity(data['idx'], data['name'], data['description'], data['answers'], 0, 0, 0, 0, 0) # we won't use the last 4 parameters
         elif 'S' in data['idx']: # scenario
-            activity = Activity(data['idx'], data['name'], data['description'], [], data['social'], data['academic'], data['happiness'], data['health']) # no answer
+            activity = Activity(data['idx'], data['name'], data['description'], [], data['social'], data['academic'], data['happiness'], data['health'], data['information']) # no answer
         else: # game
-            activity = Activity(data['idx'], data['name'], data['description'], [], 0, 0, 0, 0) # combination of both above
+            activity = Activity(data['idx'], data['name'], data['description'], [], 0, 0, 0, 0, 0) # combination of both above
         activities[p_idx] = activity
 
     set_progress(activities, str(user_id))
@@ -114,13 +115,19 @@ def send_description(description, chat_id, bot):
     for d_filename in description:
         d_filename = path.join(DATA_DIR, d_filename)
 
-        # Will always use .txt format
-        d_txt = open(d_filename).read()
-        bot_message = bot.send_message(
-            chat_id=chat_id,
-            # Bold the text to separate from other texts.
-            text=f'<b>{d_txt}</b>',
-            parse_mode='HTML'
-        )
+        if d_filename.endswith('.jpg') or d_filename.endswith('.png'):
+            d_photo = open(d_filename, 'rb')
+            bot_message = bot.send_photo(
+                chat_id=chat_id,
+                photo=d_photo
+            )
+        elif d_filename.endswith('.txt'):
+            d_txt = open(d_filename).read()
+            bot_message = bot.send_message(
+                chat_id=chat_id,
+                # Bold the text to separate from other texts.
+                text=f'<b>{d_txt}</b>',
+                parse_mode='HTML'
+            )
 
     return bot_message

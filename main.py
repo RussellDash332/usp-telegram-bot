@@ -9,7 +9,10 @@ from dpad_manager import read_dp
 
 def start(update, context):
     welcome_txt = [
-        'Dummy text',
+        "Welcome to Batch Project’s Game of Life!\n",
+        "The goal is to maintain a good balance of the four meters, namely the academics, happiness, health, and social meters. Choose wisely!\n",
+        "/activities - view the different activities for you to do",
+        "/meter - view your group’s meters for academic, social, happiness and health"
         ]
 
     update.message.reply_text('\n'.join(welcome_txt))

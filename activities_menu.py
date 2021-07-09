@@ -101,7 +101,7 @@ def choose_activity(update, context):
                 ]
             ]
 
-        txt = [f'Showing {name}.']
+        txt = [f'Showing <b>{name}</b>.']
         # Update response for completed activity
         if is_completed:
             if 'T' in idx:
@@ -118,7 +118,7 @@ def choose_activity(update, context):
         reply_markup = InlineKeyboardMarkup(keyboard)
 
         context.user_data['last_description'] = send_description(description, user_id, bot)
-        query.message.reply_text(text=''.join(txt), reply_markup=reply_markup)
+        query.message.reply_text(text=''.join(txt), reply_markup=reply_markup, parse_mode='HTML')
 
         return CHOOSE_OPTION
     else: # The activity is still locked
@@ -171,7 +171,8 @@ def check_answer(update, context):
     user_name = context.user_data['username']
 
     right_answers = activities[activity_idx].answers
-    user_answer = update.message.text
+    # Caps lock everything
+    user_answer = update.message.text.upper()
 
     keyboard = [
         [
@@ -250,7 +251,8 @@ def yes(update, context):
             f'Social: <b>{sgn(activities[activity_idx].social[0])}</b>',
             f'Academic: <b>{sgn(activities[activity_idx].academic[0])}</b>',
             f'Happiness: <b>{sgn(activities[activity_idx].happiness[0])}</b>',
-            f'Health: <b>{sgn(activities[activity_idx].health[0])}</b>',
+            f'Health: <b>{sgn(activities[activity_idx].health[0])}</b>\n',
+            f'----------\n<b>{activities[activity_idx].information[0]}</b>\n----------',
             '\nYou can always check your current meter score with the /meter command.\n',
             '<b>WARNING: You are required to do a list of forfeit(s) as follows!</b>'
             ]
@@ -294,7 +296,8 @@ def yes(update, context):
             f'Social: <b>{sgn(activities[activity_idx].social[0])}</b>',
             f'Academic: <b>{sgn(activities[activity_idx].academic[0])}</b>',
             f'Happiness: <b>{sgn(activities[activity_idx].happiness[0])}</b>',
-            f'Health: <b>{sgn(activities[activity_idx].health[0])}</b>',
+            f'Health: <b>{sgn(activities[activity_idx].health[0])}</b>\n',
+            f'----------\n<b>{activities[activity_idx].information[0]}</b>\n----------',
             '\nYou can always check your current meter score with the /meter command.'
             ]
 
@@ -359,7 +362,8 @@ def no(update, context):
             f'Social: <b>{sgn(activities[activity_idx].social[1])}</b>',
             f'Academic: <b>{sgn(activities[activity_idx].academic[1])}</b>',
             f'Happiness: <b>{sgn(activities[activity_idx].happiness[1])}</b>',
-            f'Health: <b>{sgn(activities[activity_idx].health[1])}</b>',
+            f'Health: <b>{sgn(activities[activity_idx].health[1])}</b>\n',
+            f'----------\n<b>{activities[activity_idx].information[1]}</b>\n----------',
             '\nYou can always check your current meter score with the /meter command.\n',
             '<b>WARNING: You are required to do a list of forfeit(s) as follows!</b>'
             ]
@@ -403,7 +407,8 @@ def no(update, context):
             f'Social: <b>{sgn(activities[activity_idx].social[1])}</b>',
             f'Academic: <b>{sgn(activities[activity_idx].academic[1])}</b>',
             f'Happiness: <b>{sgn(activities[activity_idx].happiness[1])}</b>',
-            f'Health: <b>{sgn(activities[activity_idx].health[1])}</b>',
+            f'Health: <b>{sgn(activities[activity_idx].health[1])}</b>\n',
+            f'----------\n<b>{activities[activity_idx].information[1]}</b>\n----------',
             '\nYou can always check your current meter score with the /meter command.'
             ]
 
