@@ -70,7 +70,7 @@ def get_options_keyboard(data, user_id):
     if user_id not in data: data[user_id] = load_data_from_csv(user_id)
     activities = data[user_id]
 
-    titles = [f'{c.name} ✅' if c.is_completed else c.name for c in activities.values()]
+    titles = [f'✅ {c.name}' if c.is_completed else c.name for c in activities.values()]
     keys = activities.keys()
 
     # Exactly 18 options so make it 6x3
