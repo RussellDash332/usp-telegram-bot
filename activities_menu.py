@@ -18,13 +18,13 @@ def forfeits(data, social, academic, happiness, health):
     # type(data) = dict, stores how many forfeits you have encountered before
     result = []
 
-    if (social <= 2 and data.get('social',0) == 0) or (social <= 3 and data.get('social',0) >= 1):
+    if (social <= 2 and data.get('social',0) == 0) or (social <= 3 and data.get('social',0) == 1):
         result.append('social')
-    if (academic <= 2 and data.get('academic',0) == 0) or (academic <= 3 and data.get('academic',0) >= 1):
+    if (academic <= 2 and data.get('academic',0) == 0) or (academic <= 3 and data.get('academic',0) == 1):
         result.append('academic')
-    if (happiness <= 2 and data.get('happiness',0) == 0) or (happiness <= 3 and data.get('happiness',0) >= 1):
+    if (happiness <= 2 and data.get('happiness',0) == 0) or (happiness <= 3 and data.get('happiness',0) == 1):
         result.append('happiness')
-    if (health <= 2 and data.get('health',0) == 0) or (health <= 3 and data.get('health',0) >= 1):
+    if (health <= 2 and data.get('health',0) == 0) or (health <= 3 and data.get('health',0) == 1):
         result.append('health')
 
     return result
@@ -62,7 +62,11 @@ def choose_activity(update, context):
         user_progress = list()
 
     bot = context.bot
-    idx = activities[activity_idx].idx
+    try:
+        idx = activities[activity_idx].idx
+    except:
+        # Just return them to the main menu
+        return CHOOSE_ACTIVITY
 
     # Using the underlying data in bot_data.json
     id_num = int(idx[4:6])
@@ -259,7 +263,7 @@ def yes(update, context):
 
         for meter in forf: # for every meter that needs a forfeit
             user_forf[meter] = user_forf.get(meter,0) + 1
-            result.append(f'<b>❇️ {forfeit_data[meter][(user_forf[meter]-1) % len(forfeit_data[meter])]}</b>')
+            result.append(f'<b>❇️ {meter.capitalize()}: {forfeit_data[meter][user_forf[meter]-1]}</b>')
 
         user_data_str = dumps({
                 'username': user_name,
@@ -370,7 +374,7 @@ def no(update, context):
 
         for meter in forf: # for every meter that needs a forfeit
             user_forf[meter] = user_forf.get(meter,0) + 1
-            result.append(f'<b>❇️ {forfeit_data[meter][(user_forf[meter]-1) % len(forfeit_data[meter])]}</b>')
+            result.append(f'<b>❇️ {meter.capitalize()}: {forfeit_data[meter][user_forf[meter]-1]}</b>')
 
         user_data_str = dumps({
                 'username': user_name,
