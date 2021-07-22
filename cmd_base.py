@@ -125,8 +125,7 @@ def send_description(description, chat_id, bot):
             d_txt = open(d_filename).read()
             bot_message = bot.send_message(
                 chat_id=chat_id,
-                # Bold the text to separate from other texts.
-                text=f'<b>{d_txt}</b>',
+                text=f'{d_txt}',
                 parse_mode='HTML'
             )
 

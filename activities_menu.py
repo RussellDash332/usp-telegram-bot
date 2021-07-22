@@ -18,13 +18,13 @@ def forfeits(data, social, academic, happiness, health):
     # type(data) = dict, stores how many forfeits you have encountered before
     result = []
 
-    if (social <= 2 and data.get('social',0) == 0) or (social <= 3 and data.get('social',0) == 1):
+    if (social <= 0 and data.get('social',0) == 0) or (social <= -1 and data.get('social',0) == 1):
         result.append('social')
-    if (academic <= 2 and data.get('academic',0) == 0) or (academic <= 3 and data.get('academic',0) == 1):
+    if (academic <= 0 and data.get('academic',0) == 0) or (academic <= -1 and data.get('academic',0) == 1):
         result.append('academic')
-    if (happiness <= 2 and data.get('happiness',0) == 0) or (happiness <= 3 and data.get('happiness',0) == 1):
+    if (happiness <= 0 and data.get('happiness',0) == 0) or (happiness <= -1 and data.get('happiness',0) == 1):
         result.append('happiness')
-    if (health <= 2 and data.get('health',0) == 0) or (health <= 3 and data.get('health',0) == 1):
+    if (health <= 0 and data.get('health',0) == 0) or (health <= -1 and data.get('health',0) == 1):
         result.append('health')
 
     return result
@@ -235,8 +235,6 @@ def yes(update, context):
     user_acad += activities[activity_idx].academic[0]
     user_hap += activities[activity_idx].happiness[0]
     user_hlth += activities[activity_idx].health[0]
-    activities[activity_idx].is_completed = True
-    user_progress.append(activity_idx)
 
     forfeit_keyboard = [
             [
@@ -263,7 +261,7 @@ def yes(update, context):
 
         for meter in forf: # for every meter that needs a forfeit
             user_forf[meter] = user_forf.get(meter,0) + 1
-            result.append(f'<b>❇️ {meter.capitalize()}: {forfeit_data[meter][user_forf[meter]-1]}</b>')
+            result.append(f'❇️ <b>{meter.capitalize()}:</b> {forfeit_data[meter][user_forf[meter]-1]}')
 
         user_data_str = dumps({
                 'username': user_name,
@@ -282,6 +280,9 @@ def yes(update, context):
         return CHOOSE_OPTION
     else: # Nothing to forfeit, proceed
         reply_markup = InlineKeyboardMarkup(keyboard)
+
+        activities[activity_idx].is_completed = True
+        user_progress.append(activity_idx)
 
         user_data_str = dumps({
                 'username': user_name,
@@ -346,8 +347,6 @@ def no(update, context):
     user_acad += activities[activity_idx].academic[1]
     user_hap += activities[activity_idx].happiness[1]
     user_hlth += activities[activity_idx].health[1]
-    activities[activity_idx].is_completed = True
-    user_progress.append(activity_idx)
 
     forfeit_keyboard = [
             [
@@ -374,7 +373,7 @@ def no(update, context):
 
         for meter in forf: # for every meter that needs a forfeit
             user_forf[meter] = user_forf.get(meter,0) + 1
-            result.append(f'<b>❇️ {meter.capitalize()}: {forfeit_data[meter][user_forf[meter]-1]}</b>')
+            result.append(f'❇️ <b>{meter.capitalize()}:</b> {forfeit_data[meter][user_forf[meter]-1]}')
 
         user_data_str = dumps({
                 'username': user_name,
@@ -393,6 +392,9 @@ def no(update, context):
         return CHOOSE_OPTION
     else: # Nothing to forfeit, proceed
         reply_markup = InlineKeyboardMarkup(keyboard)
+
+        activities[activity_idx].is_completed = True
+        user_progress.append(activity_idx)
 
         user_data_str = dumps({
                 'username': user_name,
