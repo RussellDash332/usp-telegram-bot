@@ -18,16 +18,23 @@ def forfeits(data, social, academic, happiness, health):
     # type(data) = dict, stores how many forfeits you have encountered before
     result = []
 
-    if (social <= 0 and data.get('social',0) == 0) or (social <= -1 and data.get('social',0) == 1):
-        result.append('social')
-    if (academic <= 0 and data.get('academic',0) == 0) or (academic <= -1 and data.get('academic',0) == 1):
-        result.append('academic')
-    if (happiness <= 0 and data.get('happiness',0) == 0) or (happiness <= -1 and data.get('happiness',0) == 1):
-        result.append('happiness')
-    if (health <= 0 and data.get('health',0) == 0) or (health <= -1 and data.get('health',0) == 1):
-        result.append('health')
+    def helper(param, category):
+        if (param <= 1 and data.get(category,0) == 0) or (param <= 0 and data.get(category,0) == 1):
+            result.append(category)
+
+    params = [social, academic, happiness, health]
+    categories = ['social','academic','happiness','health']
+
+    for i in range(4):
+        helper(params[i], categories[i])
 
     return result
+
+def ending(user_name, long_version):
+    if long_version:
+        return f"<b>Thank you for participating in BP's Game of Life, @{user_name}!</b>\n\nDid you manage to balance the meters by the end of the game? We hope you did! There are no right or wrong answers, but we hope you managed to reach a compromise and prevent all four meters from falling below the threshold! In the same way, we hope that you'll be able to get through university healthily, happily, with a good social circle, as well as a good academic experience."
+    else:
+        return f"\n<b>Thank you for participating in BP's Game of Life, @{user_name}!</b>"
 
 def sgn(x):
     return '+'+str(x) if x > 0 else str(x)
@@ -53,6 +60,7 @@ def choose_activity(update, context):
     activities = context.chat_data[user_id]
     context.user_data['cur_activity_idx'] = activity_idx
     context.user_data['username'] = update.effective_user.username
+    user_name = context.user_data['username']
 
     # We need to check whether we have completed all activities before the selected activity
     user_data_str = read_dp(str(user_id))
@@ -113,6 +121,10 @@ def choose_activity(update, context):
                 txt.append(f' You already completed this question! The answer was "{first_answer}".\n')
             else: # scenario or game
                 txt.append(f' You already completed this activity!\n')
+
+            # Update: add ending message
+            if len(user_progress) == 18:
+                txt.append(ending(user_name, False))
 
             keyboard = [
                 [InlineKeyboardButton(text='Back to activities list 📃', callback_data='back')],
@@ -470,6 +482,10 @@ def complete(update, context):
             'forfeits': user_forf,
             }, indent=2)
     write_dp(str(user_id), user_data_str)
+
+    # Update: add ending message
+    if len(user_progress) == 18:
+        result = ending(user_name, True)
 
     reply_markup = InlineKeyboardMarkup(keyboard)
     query.edit_message_text(result, reply_markup=reply_markup)
