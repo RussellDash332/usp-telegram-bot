@@ -3,7 +3,7 @@
 
 BATCH PROJECT 2021 Amazing Race Bot. Implemented similar to [Royal Flush Telegram Bot](https://github.com/puzzlestory/t-royal-flush-telegram-bot)
 
-[Link to the bot](https://matias.ma/nsfw/) here.
+[Link to the bot](https://t.me/bp2021_amazingracebot) here.
 
 ## How it works
 The [**main.py**](https://github.com/RussellDash332/usp-telegram-bot/blob/main/main.py) file contains the regular commands such as ```/start``` and ```/meter```. It will then lead you to [**activities_menu.py**](https://github.com/RussellDash332/usp-telegram-bot/blob/main/activities_menu.py) where it contains the main activity conversation handler and query handlers related to the ```/activities``` command. Inside is a list of methods handling different cases and options, depending on the user, such as retrying a trivia question or finishing a game.
