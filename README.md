@@ -19,7 +19,7 @@ Finally, reading/writing the JSON-styled database from/to DontPad is implemented
 ## Deploying
 This bot is currently deployed with Google Cloud SDK. Follow the provided guide to install GCloud SDK and prepare your terminal on this directory. On **main.py**, provide this function to be the first point of compilation.
 
-```
+```python
 def FUNCTION_NAME(request):
     # Define the bot
     updater = Updater(token=TOKEN, use_context=True)
@@ -32,32 +32,32 @@ def FUNCTION_NAME(request):
 
 Provide certain modules to be imported along with the versions inside **requirements.txt**, for example
 
-```
+```python
 python-telegram-bot==13.4.1
 ```
 
 #### First Deploy
 Create a new project in Google Cloud, store it's name in ```<PROJECT-ID>```. Run this command on your terminal and replace ```<TOKEN>``` with your bot API token. Make sure you have turned on Cloud Build API for your project.
 
-```
+```sh
 gcloud functions deploy FUNCTION_NAME --set-env-vars "TELEGRAM_TOKEN=<TOKEN>" --runtime python38 --trigger-http --project=<PROJECT-ID>
 ```
 
 Once the deploy finishes (around 2 minutes), it will provide you an URL for the webhook setup. Copy the URL as ```<URL>``` and run this command.
 
-```
+```sh
 curl "https://api.telegram.org/bot<TOKEN>/setWebhook?url=<URL>"
 ```
 
 #### Re-deploying
 Should you apply some changes in your code, you can re-deploy your bot using a similar command.
 
-```
+```sh
 gcloud functions deploy FUNCTION_NAME --runtime python38 --trigger-http --project=<PROJECT-ID>
 ```
 
 For double check, set the webhook again.
 
-```
+```sh
 curl "https://api.telegram.org/bot<TOKEN>/setWebhook?url=<URL>"
 ```
